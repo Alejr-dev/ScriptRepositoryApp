@@ -1,12 +1,10 @@
 import { Webhook } from "svix";
-import { headers } from "next/headers";
 import { EmailAddress, WebhookEvent } from "@clerk/nextjs/server";
-
 import User from "@/app/Models/UserSchema";
 import connect from "@/app/lib/connect";
-import { NextResponse, NextRequest } from "next/server"; // Importa NextRequest
+import { NextResponse, NextRequest } from "next/server";
 
-export async function POST(req: NextRequest) { // Cambia a NextRequest
+export async function POST(req: NextRequest) {
   const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
   if (!WEBHOOK_SECRET) {
@@ -15,10 +13,9 @@ export async function POST(req: NextRequest) { // Cambia a NextRequest
     );
   }
 
-  const headerPayload = headers();
-  const svix_id = headerPayload.get("svix-id");
-  const svix_timestamp = headerPayload.get("svix-timestamp");
-  const svix_signature = headerPayload.get("svix-signature");
+  const svix_id = req.headers.get("svix-id");
+  const svix_timestamp = req.headers.get("svix-timestamp");
+  const svix_signature = req.headers.get("svix-signature");
 
   if (!svix_id || !svix_timestamp || !svix_signature) {
     return NextResponse.json({ error: "No svix headers found" }, { status: 400 });
@@ -28,7 +25,6 @@ export async function POST(req: NextRequest) { // Cambia a NextRequest
   const body = JSON.stringify(payload);
 
   const wh = new Webhook(WEBHOOK_SECRET);
-
   let evt: WebhookEvent;
 
   try {
